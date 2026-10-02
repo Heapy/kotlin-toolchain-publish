@@ -1,4 +1,4 @@
-# kotlin-toolchain-publish
+# ktc-publish
 
 Run checks and publish **JetBrains Kotlin Toolchain** libraries, or prepare a
 Maven Central bundle for inspection. Works on Linux, macOS, and Windows with
@@ -20,8 +20,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - uses: Heapy/setup-kotlin-toolchain@v1
-      - uses: Heapy/kotlin-toolchain-publish@v1
+      - uses: Heapy/setup-ktc@v1
+      - uses: Heapy/ktc-publish@v1
         with:
           mode: publish
           repository: mavenCentral
@@ -75,9 +75,9 @@ publishes test artifacts to Maven Central.
 
 ## Related actions
 
-- [setup-kotlin-toolchain](https://github.com/Heapy/setup-kotlin-toolchain)
-- [update-kotlin-toolchain](https://github.com/Heapy/update-kotlin-toolchain)
-- [kotlin-toolchain-check](https://github.com/Heapy/kotlin-toolchain-check)
+- [setup-ktc](https://github.com/Heapy/setup-ktc)
+- [update-ktc](https://github.com/Heapy/update-ktc)
+- [ktc-check](https://github.com/Heapy/ktc-check)
 
 ## License
 

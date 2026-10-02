@@ -1,5 +1,5 @@
 {
-  "name": "kotlin-toolchain-publish",
+  "name": "ktc-publish",
   "version": "1.0.0",
   "private": true,
   "type": "module",

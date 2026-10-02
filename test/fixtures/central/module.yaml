@@ -19,8 +19,8 @@ settings:
     publishSources: true
     pom:
       name: Action integration fixture
-      url: https://github.com/Heapy/kotlin-toolchain-publish
-      scm: https://github.com/Heapy/kotlin-toolchain-publish
+      url: https://github.com/Heapy/ktc-publish
+      scm: https://github.com/Heapy/ktc-publish
       developers:
         - name: Heapy
       licenses:
