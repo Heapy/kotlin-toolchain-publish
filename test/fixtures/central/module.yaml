@@ -1,0 +1,28 @@
+product: jvm/lib
+
+description: Integration test for Kotlin Toolchain Maven Central bundles
+
+settings:
+  jvm:
+    jdk:
+      version: 25
+      distributions: [temurin]
+  publishing:
+    enabled: true
+    group: io.heapy.actionfixture
+    artifactId: bundle-test
+    version: 0.0.0-ci
+    mavenCentral:
+      enabled: true
+      publishingMode: manual
+    signArtifacts: true
+    publishSources: true
+    pom:
+      name: Action integration fixture
+      url: https://github.com/Heapy/kotlin-toolchain-publish
+      scm: https://github.com/Heapy/kotlin-toolchain-publish
+      developers:
+        - name: Heapy
+      licenses:
+        - name: MIT
+          url: https://opensource.org/license/mit

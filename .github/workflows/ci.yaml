@@ -41,3 +41,60 @@ jobs:
           test "$PUBLISHED" = 'true'
           test -f "$HOME/.m2/repository/io/heapy/actionfixture/publication-test/0.0.0-ci/publication-test-0.0.0-ci.pom"
           test -f "$HOME/.m2/repository/io/heapy/actionfixture/publication-test/0.0.0-ci/publication-test-0.0.0-ci.jar"
+  signed-bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: Heapy/setup-kotlin-toolchain@f80139b381c1420d246b5ab04b5e6888eda5a0fe # v1 candidate
+        with:
+          version: 0.13.0
+      - name: Generate disposable signing key for bundle verification
+        env:
+          GNUPGHOME: ${{ runner.temp }}/ktc-ci-gnupg
+        shell: bash
+        run: |
+          mkdir -m 700 "$GNUPGHOME"
+          gpg --batch --pinentry-mode loopback --passphrase '' --quick-generate-key 'Action CI <ci@example.invalid>' rsa2048 sign 1d
+          gpg --batch --armor --export-secret-keys 'ci@example.invalid' > "$RUNNER_TEMP/ci-signing-key.asc"
+          node <<'JS'
+          const fs = require('fs');
+          const crypto = require('crypto');
+          const key = fs.readFileSync(process.env.RUNNER_TEMP + '/ci-signing-key.asc', 'utf8');
+          const delimiter = crypto.randomUUID();
+          console.log('::add-mask::' + key.replaceAll('%','%25').replaceAll('\r','%0D').replaceAll('\n','%0A'));
+          fs.appendFileSync(process.env.GITHUB_ENV, 'CI_SIGNING_KEY<<' + delimiter + '\n' + key + '\n' + delimiter + '\n');
+          JS
+      - uses: ./
+        id: bundle
+        with:
+          working-directory: test/fixtures/central
+          signing-key: ${{ env.CI_SIGNING_KEY }}
+          artifact-name: signed-central-bundle
+      - name: Verify bundle contents and signatures
+        shell: bash
+        env:
+          PUBLISHED: ${{ steps.bundle.outputs.published }}
+          GNUPGHOME: ${{ runner.temp }}/ktc-ci-gnupg
+        run: |
+          test "$PUBLISHED" = 'false'
+          python3 <<'PY'
+          import pathlib, zipfile, os, subprocess
+          archives = list(pathlib.Path('test/fixtures/central/build').rglob('*.zip'))
+          assert archives, 'No Maven Central bundle generated'
+          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'bundle-verification'
+          output.mkdir()
+          with zipfile.ZipFile(archives[0]) as archive:
+              for item in archive.namelist():
+                  target = (output / item).resolve()
+                  assert target.is_relative_to(output.resolve()), 'Unexpected archive path'
+              archive.extractall(output)
+          assert list(output.rglob('*.pom')), 'Missing POM'
+          assert list(output.rglob('*-sources.jar')), 'Missing sources'
+          signatures = list(output.rglob('*.asc'))
+          assert signatures, 'Missing signatures'
+          for signature in signatures:
+              subprocess.run(['gpg', '--batch', '--verify', str(signature), str(signature)[:-4]], check=True)
+          PY
