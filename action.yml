@@ -1,4 +1,4 @@
-name: Heapy Kotlin Toolchain Publish
+name: Kotlin Toolchain Publish
 description: Check and publish Kotlin Toolchain libraries or prepare Maven Central bundles with scoped signing credentials
 branding:
   icon: package
