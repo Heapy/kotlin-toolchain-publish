@@ -1,0 +1,18 @@
+product: jvm/lib
+
+repositories:
+  - url: mavenLocal
+    publish: true
+
+settings:
+  kotlin:
+    allWarningsAsErrors: true
+  jvm:
+    jdk:
+      version: 25
+      distributions: [temurin]
+  publishing:
+    group: io.heapy.actionfixture
+    artifactId: publication-test
+    version: 0.0.0-ci
+    enabled: true

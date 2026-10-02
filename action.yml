@@ -1,0 +1,82 @@
+name: Heapy Kotlin Toolchain Publish
+description: Check and publish Kotlin Toolchain libraries or prepare Maven Central bundles with scoped signing credentials
+branding:
+  icon: package
+  color: purple
+inputs:
+  working-directory:
+    description: Project directory relative to the workspace
+    default: .
+  mode:
+    description: bundle prepares a local Maven Central ZIP; publish invokes repository publication
+    default: bundle
+  repository:
+    description: Repository ID from module.yaml, mavenCentral, or mavenLocal
+    default: mavenCentral
+  modules:
+    description: Comma or whitespace separated module names; empty selects all eligible modules
+    default: ''
+  transitive:
+    description: Also publish dependencies of explicitly selected modules
+    default: 'false'
+  check:
+    description: Run registered checks before packaging or publishing
+    default: 'true'
+  central-username:
+    description: Maven Central Portal token username; can also be provided through the toolchain environment variable
+    default: ''
+  central-password:
+    description: Maven Central Portal token password
+    default: ''
+  signing-key:
+    description: ASCII-armored PGP signing key
+    default: ''
+  signing-passphrase:
+    description: Optional PGP key passphrase
+    default: ''
+  upload-artifacts:
+    description: Upload generated JAR and ZIP artifacts after a successful command
+    default: 'true'
+  artifact-name:
+    description: Unique artifact name for this publication job
+    default: kotlin-publication-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}
+outputs:
+  published:
+    description: Whether a publish command completed successfully (Central may still await manual release)
+    value: ${{ steps.publish.outputs.published }}
+  mode:
+    description: Effective operation mode
+    value: ${{ steps.publish.outputs.mode }}
+  repository:
+    description: Publication repository ID
+    value: ${{ steps.publish.outputs.repository }}
+runs:
+  using: composite
+  steps:
+    - name: Check and package or publish
+      id: publish
+      shell: bash
+      env:
+        ACTION_DIRECTORY: ${{ github.action_path }}
+        INPUT_DIRECTORY: ${{ inputs.working-directory }}
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_MODULES: ${{ inputs.modules }}
+        INPUT_TRANSITIVE: ${{ inputs.transitive }}
+        INPUT_CHECK: ${{ inputs.check }}
+        INPUT_CENTRAL_USERNAME: ${{ inputs.central-username }}
+        INPUT_CENTRAL_PASSWORD: ${{ inputs.central-password }}
+        INPUT_SIGNING_KEY: ${{ inputs.signing-key }}
+        INPUT_SIGNING_PASSPHRASE: ${{ inputs.signing-passphrase }}
+        INPUT_UPLOAD: ${{ inputs.upload-artifacts }}
+      run: node "$ACTION_DIRECTORY/scripts/main.mjs"
+    - name: Upload publication artifacts
+      if: inputs.upload-artifacts == 'true'
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          ${{ steps.publish.outputs.build-path }}/**/*.jar
+          ${{ steps.publish.outputs.build-path }}/**/*.zip
+        if-no-files-found: warn
+        retention-days: 7

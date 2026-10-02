@@ -1,0 +1,43 @@
+name: CI
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: npm test
+      - uses: Heapy/setup-kotlin-toolchain@f80139b381c1420d246b5ab04b5e6888eda5a0fe # v1 candidate
+        with:
+          version: 0.13.0
+      - uses: ./
+        id: publication
+        with:
+          working-directory: test/fixtures/jvm
+          mode: publish
+          repository: mavenLocal
+      - name: Verify actual Maven publication
+        env:
+          PUBLISHED: ${{ steps.publication.outputs.published }}
+        run: |
+          test "$PUBLISHED" = 'true'
+          test -f "$HOME/.m2/repository/io/heapy/actionfixture/publication-test/0.0.0-ci/publication-test-0.0.0-ci.pom"
+          test -f "$HOME/.m2/repository/io/heapy/actionfixture/publication-test/0.0.0-ci/publication-test-0.0.0-ci.jar"
