@@ -78,3 +78,8 @@ publishes test artifacts to Maven Central.
 - [setup-kotlin-toolchain](https://github.com/Heapy/setup-kotlin-toolchain)
 - [update-kotlin-toolchain](https://github.com/Heapy/update-kotlin-toolchain)
 - [kotlin-toolchain-check](https://github.com/Heapy/kotlin-toolchain-check)
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Third-party
+components retain their original licenses.

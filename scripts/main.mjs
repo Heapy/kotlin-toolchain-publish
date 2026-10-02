@@ -1,3 +1,6 @@
+// Copyright 2026 Heapy
+// SPDX-License-Identifier: Apache-2.0
+
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { bool, names, executable, projectDirectory, run, requireToolchain, output, summary, escapeCommand } from './common.mjs';
